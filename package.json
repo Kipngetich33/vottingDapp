@@ -2,6 +2,8 @@
   "name": "@reach-sh/votingdapp",
   "type": "module",
   "dependencies": {
+    "@reach-sh/stdlib": "^0.1.11-rc.8",
+    "react-router-dom": "^5.2.0"
   },
   "author": "reach.sh",
   "license": "Apache-2.0",
