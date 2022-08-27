@@ -3,59 +3,45 @@ import {loadStdlib} from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs'
 
-// load the stdlib environment variables
+// define global variables
 const stdlib = loadStdlib(process.env);
-
 const startingBalance = stdlib.parseCurrency(100);
-
-// define contestants 
-const contestants = {
-  "President":[
-    {'fullName':"Raila Oding"},
-    {'fullName':"William Ruto"}
-  ],
-  "Gorvernor":[
-    {'fullName':"John Sakaja"},
-    {'fullName':"Polycarp Igathe"}
-  ]
+const contestants = ["Raila Odinga",'William Ruto']
+const results = {
+  'Raila Odinga':0,
+  'William Ruto':0
 }
 
+// now start the program
 console.log("********************************************* Voting System ***************************************************")
 console.log("Starting Contract")
 // create an account for the vote cordinator
 const accVoteCordinator  =  await stdlib.newTestAccount(startingBalance);
 console.log('Created account for accVoteCordinator');
 
-
 // define helper functions
-const getContestantsID = async () => {
-  console.log("Getting Contestant ID")
-  const voterId = await ask(
-    'Enter your Id No.',
-    (x => x) // use call back to return the details entered by the user
-  )
-  return {
-    contestantId: voterId
-  }
-}
+const castVote = async () => await ask(
+  'Please Cast you vote below: 1 - Raila Odinga, 2 - William Ruto.',
+  (x => x) // use call back to return the details entered by the user
+)
+
 
 let votingDone = false;
 const voters = []
-const startVotters = async () => {
-  console.log("starting Voters")
-
-  const runVotter = async (passedVote) => {
+const startVotters = async () => {  
+  const runVotter = async () => {
     console.log("Running Voter")
+    const castedVote = await castVote()
+    console.log("castedVote",castedVote)
      // voters.push(vote);
     const acc = await stdlib.newTestAccount(startingBalance);
-    console.log(`Create account for Voter ${passedVote}}`)
-
-    // define contract for the current user
     const ctc = acc.contract(backend, ctcVoteCordinator.getInfo());
+    console.log(`Create account for Voter ${castedVote}}`)
+
     // call the voter api
     try{
       // now increment the vote here
-      const [ currentVote ] = await ctc.apis.Voter.vote(passedVote);
+      const [ currentVote ] = await ctc.apis.Voter.vote(castedVote);
       console.log(`Your latest vote is ${currentVote}`)
     }catch (e) {
       console.log(`Failed to Vote`)
@@ -63,9 +49,9 @@ const startVotters = async () => {
   }
 
   // now run voters votes here
-  await runVotter(1)
-  await runVotter(1)
-  await runVotter(1)
+  await runVotter()
+  await runVotter()
+  await runVotter()
 
   while(! votingDone ) {
     await stdlib.wait(1);
@@ -75,20 +61,46 @@ const startVotters = async () => {
 
 // allow accVoteCordinator to attach to the backend as the deployer of the contract
 const ctcVoteCordinator = accVoteCordinator.contract(backend);
-// crate a partcipant interface for the voter cordininator
-await ctcVoteCordinator.participants.VoteCordinator({
-  votingReady: () => {
-    startVotters();
-  },
-  voteStatus: (vote) => {
-    console.log(`User Vote ${vote}`);
-  },
-  finalVote: (vote) => {
-    console.log(`Final Total Vote: ${vote}`);
-  },
+// display contract details so that users can attach
+ctcVoteCordinator.getInfo().then((contractDetails) => {
+  console.log(`Contract Details : ${JSON.stringify(contractDetails)}`)
 })
 
+
+// add the await all promise loop
+await Promise.all([
+  // crate a partcipant interface for the voter cordininator
+  await ctcVoteCordinator.participants.VoteCordinator({
+    votingReady: () => {
+      startVotters();
+    },
+    voteStatus: (vote) => {
+      console.log(`User Vote ${vote}`);
+    }, 
+    finalVote: (firstCandidateVotes, secondCandidateVotes) => {
+      // assign votes correctly
+      results['Raila Odinga'] = firstCandidateVotes
+      results['William Ruto'] = secondCandidateVotes
+      // console the final results
+      console.log(`firstCandidateVotes: ${firstCandidateVotes}, secondCandidateVotes: ${secondCandidateVotes}`);
+    },
+    getContestants: () => {
+      return {
+        position:"President",
+        candidates:["Raila Odinga","William Ruto"]
+      }
+    },
+    testObject: () => {
+      return {'status':true}
+    },
+    printFunction: (message) => {
+      console.log(`${message}`)
+    }
+  })
+])
+
+
 console.log('Thanks for Making you voice Heard');
-// exit from active contract
+// end the contract at this point
 votingDone = true
-// done()
+done()
