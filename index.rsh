@@ -11,9 +11,9 @@ export const main = Reach.App(() => {
       candidates: Tuple(Bytes(50),Bytes(50))
     })),
     testObject: Fun([],Object({})),
-    printFunction: Fun([Bytes(10)],Null)
+    printFunction: Fun([Bytes(10)],Null),
+    terminateContract: Fun([],Null)
   });
-
 
   // define the voter API interface
   const Voter = API('Voter', {
@@ -29,7 +29,6 @@ export const main = Reach.App(() => {
   // The VoteCordinator is the first one to publish and hence pay deployment fees
   VoteCordinator.publish();
   commit();
-
 
   // define helper functions here
   const determineAdditionOfVotes = (vote,contestantIndex) => {
@@ -47,6 +46,8 @@ export const main = Reach.App(() => {
 
   // start the Voting process
   VoteCordinator.interact.votingReady();
+  // add option to end the contract
+  // VoteCordinator.interact.terminateContract();
 
   const [ firstCandidateVotes, secondCandidateVotes ] = parallelReduce([ 0, 0 ])
     .invariant(balance() >= 0 )
@@ -54,6 +55,7 @@ export const main = Reach.App(() => {
     .api_(Voter.vote, (vote) => {
       return [vote, (notify) => {
         notify([vote]);
+        
         VoteCordinator.interact.voteStatus(vote);
         return [
           firstCandidateVotes + determineAdditionOfVotes(vote,1),
@@ -61,16 +63,14 @@ export const main = Reach.App(() => {
         ]
       }];
     })
+    // .timeout(absoluteTime(end), () => {
     .timeout(absoluteTime(end), () => {
       VoteCordinator.publish();
       return [firstCandidateVotes, secondCandidateVotes]
     });
-  
 
   // print the last vote here
   VoteCordinator.interact.finalVote(firstCandidateVotes,secondCandidateVotes)
-
-
   transfer(balance()).to(VoteCordinator);
 
   commit();
