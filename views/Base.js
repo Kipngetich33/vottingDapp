@@ -220,7 +220,7 @@ class Base extends React.Component {
             </button><br></br>
 
             <hr/>
-            <h3>Results Section</h3>
+            <h3>Results Section </h3>
             <label > Raila Odinga Total Votes</label>
             <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
             <label > William Ruto Total Votes</label>
