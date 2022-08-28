@@ -50,6 +50,10 @@ class Base extends React.Component {
           attachContractDetails:null,
           railaVotes:0,
           rutoVotes:0,
+          winner:"",
+          railaTotalVotes:0,
+          rutoTotalVotes:0,
+
       }
     }
 
@@ -67,9 +71,9 @@ class Base extends React.Component {
 
     // create a new account
     createNewAccount = async () => {
-        let userAccount = await stdlib.getDefaultAccount();
+        // let userAccount = await stdlib.getDefaultAccount();
         console.log("Added user Account",userAccount)
-        // let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
+        let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
         this.setState({userAccountaddr:userAccount.networkAccount.addr})    
         //now show the confirmation section
@@ -213,7 +217,16 @@ class Base extends React.Component {
 
             <button id="submitVote" onClick={this.submitVote} type="button" className="btn btn-primary">
                 Submit
-            </button>
+            </button><br></br>
+
+            <hr/>
+            <h3>Results Section</h3>
+            <label > Raila Odinga Total Votes</label>
+            <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
+            <label > William Ruto Total Votes</label>
+            <input type="text" value={this.state.rutoTotalVotes}/><br/><br/>
+            <label > Winner</label>
+            <input type="text" value={this.state.winner} /><br/><br/>
 
           </div>
         )
