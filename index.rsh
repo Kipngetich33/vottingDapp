@@ -10,9 +10,6 @@ export const main = Reach.App(() => {
       position:Bytes(50),
       candidates: Tuple(Bytes(50),Bytes(50))
     })),
-    testObject: Fun([],Object({})),
-    printFunction: Fun([Bytes(10)],Null),
-    terminateContract: Fun([],Null)
   });
 
   // define the voter API interface
@@ -40,14 +37,13 @@ export const main = Reach.App(() => {
   // publish something in order to enter into a concesus step
   VoteCordinator.publish();
 
-  const lenInBlocks = 10
+  const lenInBlocks = 20
   const end = lastConsensusTime() + lenInBlocks;
   const firstVote = 0
 
   // start the Voting process
   VoteCordinator.interact.votingReady();
   // add option to end the contract
-  // VoteCordinator.interact.terminateContract();
 
   const [ firstCandidateVotes, secondCandidateVotes ] = parallelReduce([ 0, 0 ])
     .invariant(balance() >= 0 )
