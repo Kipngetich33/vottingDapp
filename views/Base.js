@@ -6,35 +6,10 @@ import { loadStdlib } from '@reach-sh/stdlib';
 const stdlib = loadStdlib(process.env);
 
 let ctc = null;
-const interact = { ...stdlib.hasConsoleLogger }
+// const interact = { ...stdlib.hasConsoleLogger }
 const userParts = {
     'VoteCordinator':backend.VoteCordinator,
 }
-
-interact.votingReady = () => {
-  console.log("Voting Ready")
-}
-
-interact.voteStatus = (vote) => {
-  console.log("Last Vote",vote)
-}
-
-interact.finalVote = (firstContestant,secondContestant) => {
-
-}
-
-interact.getContestants = () => {
-  return {}
-}
-
-interact.finalVote = (firstContestant,secondContestant) => {
-  
-}
-
-interact.finalVote = (firstContestant,secondContestant) => {
-  
-}
-
 
 class Base extends React.Component {
     //create state for Component
@@ -47,12 +22,64 @@ class Base extends React.Component {
           initialAccountBalance:0,
           ctc:null,
           contractDetailsJson:null,
+          votingReady:false,
           attachContractDetails:null,
           railaVotes:0,
           rutoVotes:0,
           winner:"",
           railaTotalVotes:0,
           rutoTotalVotes:0,
+          roleDiv:"showClass",
+          voteCordinatorDiv:"hideClass",
+          voterDiv:"hideClass",
+          resultsDiv:"hideClass",
+          interact: { ...stdlib.hasConsoleLogger,
+            votingReady: () => {
+              alert("Voting launched successfully!")
+              this.setState({
+                votingReady:true
+              })
+            },
+            donationAmt:0,
+            projectVote:0,
+
+            voteStatus : (vote) => {
+              console.log("Last Vote",vote)
+              const latestVote = parseInt(vote._hex, 16);
+              if(latestVote == 1){
+                this.setState({
+                  railaTotalVotes: this.state.railaTotalVotes + 1
+                })
+              }else if(latestVote == 2){
+                this.setState({
+                  rutoTotalVotes: this.state.rutoTotalVotes += 1
+                })
+              }
+            },
+
+            finalVote : (firstContestant,secondContestant) => {
+              if(firstContestant == secondContestant){
+                this.setState({
+                  winner:"Draw"
+                })
+                alert("No winner was found election ended in a Draw.")
+              }else if (firstContestant > secondContestant){
+                this.setState({
+                  winner:"Raila Odinga"
+                })
+                alert("Your winner is: Raila Odinga")
+              }else if (firstContestant > secondContestant){
+                this.setState({
+                  winner:"William Ruto"
+                })
+                alert("Your winner is: William Ruto")
+              }
+            },
+
+            getContestants : () => {
+              return {}
+            },
+          }
 
       }
     }
@@ -72,7 +99,7 @@ class Base extends React.Component {
     // create a new account
     createNewAccount = async () => {
         // let userAccount = await stdlib.getDefaultAccount();
-        console.log("Added user Account",userAccount)
+        // console.log("Added user Account",userAccount)
         let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
         this.setState({userAccountaddr:userAccount.networkAccount.addr})    
@@ -95,6 +122,18 @@ class Base extends React.Component {
         //now set state of contract as Pending
         this.setState({contractDetailsJson:"Pending"}) 
         this.setState({ctc:ctc})
+
+        console.log('Complete Transaction')
+        let userBackend = userParts["VoteCordinator"]
+
+        //pass contract and interact to current user's backend
+        userBackend(ctc, this.state.interact)
+
+        //show the contract details
+        ctc.getInfo().then((contractDetails) => {
+            console.log(JSON.stringify(contractDetails))
+            this.setState({contractDetailsJson:contractDetails._hex});
+        })
     }
 
     attachToContract = async () => {
@@ -111,11 +150,6 @@ class Base extends React.Component {
       }catch (e) {
         console.log(`Failed to Vote`)
       } 
-      //mark current user as contract initializer
-      // ctc = await this.state.userAccount.contract(backend)
-      // //now set state of contract as Pending
-      // this.setState({contractDetailsJson:"Pending"}) 
-      // this.setState({ctc:ctc})
     }
 
     voteRaila = (selectedCandidate) => {
@@ -126,16 +160,20 @@ class Base extends React.Component {
     }
 
     voteRuto = (selectedCandidate) => {
-      this.setState({rutoaVotes:this.state.rutoVotes? 0:1})
+      this.setState({rutoVotes:this.state.rutoVotes? 0:1})
     }
 
     submitVote = async () => {
       console.log("Submitting Vote")
       // attach to the contract in the backend
-      if(this.state.voteRaila == 1 && this.state.rutoVotes == 1){
+      console.log(this.state.railaVotes,this.state.rutoVotes)
+      if(this.state.railaVotes == 0 && this.state.rutoVotes == 0){
+        alert('You have not voted for any candidate.')
+      }
+      else if(this.state.railaVotes == 1 && this.state.rutoVotes == 1){
         alert("You Can only vote for one candidate")
       }else{
-        let userVote = this.state.voteRaila == 1 ? 1:2
+        let userVote = this.state.railaVotes == 1 ? 1:2
         ctc = await this.state.userAccount.contract(backend,this.state.attachContractDetails);
         // call the voters API
 
@@ -144,27 +182,34 @@ class Base extends React.Component {
         try{
           // now increment the vote here
           const [ currentVote ] = await ctc.apis.Voter.vote(userVote);
-          console.log(`Your latest vote is ${currentVote}`)
+          if(currentVote == 1){
+            alert("You successfully voted for Raila Odinga")
+          }else{
+            alert("You successfully voted for William Ruto")
+          }
         }catch (e) {
-          console.log(`Failed to Vote`)
+          alert("Sorry the voting period has elapsed!")
         }
       }
     }
 
-
     completeTransaction = (projectVoteValue) => {
-        console.log('Complete Transaction')
-        let userBackend = userParts["VoteCordinator"]
-        interact.donationAmt = 10
-        interact.projectVote = 1
-        //pass contract and interact to current user's backend
-        userBackend(ctc, interact)
+        
+    }
 
-        //show the contract details
-        ctc.getInfo().then((contractDetails) => {
-            console.log(JSON.stringify(contractDetails))
-            this.setState({contractDetailsJson:contractDetails._hex});
-        })
+    voteCordinatorRole = () => {
+      this.setState({
+        voteCordinatorDiv:"showClass",
+        roleDiv:"hideClass",
+        resultsDiv:"showClass",
+      })
+    }
+
+    voterRole = () => {
+      this.setState({
+        voterDiv:"showClass",
+        roleDiv:"hideClass",
+      })
     }
 
     // render the DOM here
@@ -173,60 +218,95 @@ class Base extends React.Component {
           <div >
             <h1>Decentralized Voting System</h1>
             <hr/>
-            <h3>Vote Cordinator Section</h3>
-            <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
-              Create New Account
-            </button><br/><br/>
+            <div className={this.state.roleDiv} >
+              <h3>Select a role</h3>
+              <button  onClick={this.voteCordinatorRole} type="button" className="btn btn-primary">
+                  Vote Cordinator
+              </button><br/><br/>
 
-            <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
-                Fund Account
-            </button><br/><br/>
-
-            <button id="initiateNewContract" onClick={this.initiateNewContract} type="button" className="btn btn-primary">
-                Initiate Contract
-            </button><br/><br/>
-
-            <button id="completeTransaction" onClick={this.completeTransaction} type="button" className="btn btn-primary">
-                Show Contract Info
-            </button><br/><br/>
+              <button onClick={this.voterRole} type="button" className="btn btn-primary">
+                  Voter
+              </button><br/><br/>
+            </div>
+            <div className={this.state.voteCordinatorDiv}>
+              <h3>Vote Cordinator Section</h3>
+              <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
+                Create New Account    
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <input
+                type='text'
+                value={this.state.userAccountaddr}
+              /><br/><br/>
             
-            <hr/>
-            <h3>Voter Section</h3>
-            <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
-              Create New Account
-            </button> <br/><br/>
+              <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
+                  Fund Account
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <input
+                type='text'
+                value={this.state.initialAccountBalance}
+              />
+              <br/><br/>
 
-            <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
-                Fund Account
-            </button><br/><br/>
+              <button id="initiateNewContract" onClick={this.initiateNewContract} type="button" className="btn btn-primary">
+                  Initiate Contract
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <input
+                type='text'
+                value={this.state.contractDetailsJson}
+              /><br/><br/>
+            </div>
+            
+            <div className={this.state.voterDiv}>
+              <h3>Voter Section</h3>
+              <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
+                Create New Account
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <input
+                type='text'
+                value={this.state.userAccountaddr}
+              /><br/><br/>
 
-            <input
-              type='text'
-              placeholder='Enter contract'
-              onChange={(e) => this.setState({attachContractDetails: e.currentTarget.value})}
-            /><br/><br/>
+              <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
+                  Fund Account
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <input
+                type='text'
+                value={this.state.initialAccountBalance}
+              />
+              <br/><br/>
 
-            {/* <button id="initiateNewContract" onClick={this.attachToContract} type="button" className="btn btn-primary">
-                Attach to Contract
-            </button><br/><br/> */}
+              <h4>Select your preffered President </h4>
+              <label > Vote for Raila Odinga</label>
+              <input type="checkbox" name="raila" onClick={this.voteRaila}/><br/><br/>
+              <label > Vote for William Ruto</label>
+              <input type="checkbox" name="ruto" onClick={this.voteRuto}/><br/><br/>
 
-            <label > Vote for Raila Odinga</label>
-            <input type="checkbox" name="raila" onClick={this.voteRaila}/><br/><br/>
-            <label > Vote for William Ruto</label>
-            <input type="checkbox" name="ruto" onClick={this.voteRuto}/><br/><br/>
+              <input
+                type='text'
+                placeholder='Enter contract'
+                onChange={(e) => this.setState({attachContractDetails: e.currentTarget.value})}
+              /> &nbsp;&nbsp;&nbsp;
+              <button id="submitVote" onClick={this.submitVote} type="button" className="btn btn-primary">
+                  Submit Vote
+              </button><br></br>
+            </div>
 
-            <button id="submitVote" onClick={this.submitVote} type="button" className="btn btn-primary">
-                Submit
-            </button><br></br>
-
-            <hr/>
-            <h3>Results Section </h3>
-            <label > Raila Odinga Total Votes</label>
-            <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
-            <label > William Ruto Total Votes</label>
-            <input type="text" value={this.state.rutoTotalVotes}/><br/><br/>
-            <label > Winner</label>
-            <input type="text" value={this.state.winner} /><br/><br/>
+            
+            <div className={this.state.resultsDiv}>
+              <hr/>
+              <h3>Results Section </h3>
+              <label > Raila Odinga Total Votes</label>
+              <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
+              <label > William Ruto Total Votes</label>
+              <input type="text" value={this.state.rutoTotalVotes}/><br/><br/>
+              <label > Winner</label>
+              <input type="text" value={this.state.winner} /><br/><br/>
+            </div>
 
           </div>
         )

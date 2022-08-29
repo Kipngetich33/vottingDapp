@@ -37,7 +37,7 @@ export const main = Reach.App(() => {
   // publish something in order to enter into a concesus step
   VoteCordinator.publish();
 
-  const lenInBlocks = 20
+  const lenInBlocks = 10
   const end = lastConsensusTime() + lenInBlocks;
   const firstVote = 0
 
