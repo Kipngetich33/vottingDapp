@@ -3,7 +3,12 @@ import { Route, Switch, Link, useRouteMatch } from "react-router-dom"
 import Results from "./Results.js"
 import * as backend from '../build/index.main.mjs';
 import { loadStdlib } from '@reach-sh/stdlib';
+import MyAlgoConnect from '@randlabs/myalgo-connect';
+
 const stdlib = loadStdlib(process.env);
+
+stdlib.setWalletFallback(stdlib.walletFallback({
+  providerEnv: 'TestNet', MyAlgoConnect })); 
 
 let ctc = null;
 const userParts = {
@@ -103,7 +108,7 @@ class Base extends React.Component {
         let userAccount = await stdlib.getDefaultAccount();
         // let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
-        this.setState({userAccountaddr : userAccount.networkAccount.address})    
+        this.setState({userAccountaddr : userAccount.networkAccount.addr})    
         //now show the confirmation section
         this.setState({confirmAccount:true})
         //get user account balance
@@ -131,8 +136,9 @@ class Base extends React.Component {
 
         //show the contract details
         ctc.getInfo().then((contractDetails) => {
+            console.log(contractDetails._hex)
             let contractString = JSON.stringify(contractDetails).substring(1, contractDetails.length - 1);
-            this.setState({contractDetailsJson:contractString});
+            this.setState({contractDetailsJson:contractDetails._hex});
         })
     }
 
