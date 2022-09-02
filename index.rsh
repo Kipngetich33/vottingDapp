@@ -41,7 +41,7 @@ export const main = Reach.App(() => {
 
   VoteCordinator.publish();
 
-  const lenInBlocks = 100
+  const lenInBlocks = 20
   const end = lastConsensusTime() + lenInBlocks;
   const firstVote = 0
 
