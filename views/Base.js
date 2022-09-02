@@ -43,7 +43,6 @@ class Base extends React.Component {
             projectVote:0,
 
             voteStatus : (vote) => {
-              console.log("Last Vote",vote)
               const latestVote = parseInt(vote._hex, 16);
               if(latestVote == 1){
                 this.setState({
@@ -102,16 +101,14 @@ class Base extends React.Component {
     // create a new account
     createNewAccount = async () => {
         let userAccount = await stdlib.getDefaultAccount();
-        console.log("Added user Account",userAccount)
         // let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
-        this.setState({userAccountaddr:userAccount.networkAccount.addr})    
+        this.setState({userAccountaddr : userAccount.networkAccount.address})    
         //now show the confirmation section
         this.setState({confirmAccount:true})
         //get user account balance
         let initialAccBal = this.parseAtomicToStandard(await userAccount.balanceOf())
         this.setState({initialAccountBalance:initialAccBal})
-        console.log("Initial Acc bal",initialAccBal)
     }
 
     fundAccount = async () => {
@@ -121,14 +118,12 @@ class Base extends React.Component {
     }
 
     initiateNewContract = async () => {
-        console.log("Initiating Contract")
         //mark current user as contract initializer
         ctc = await this.state.userAccount.contract(backend)
         //now set state of contract as Pending
         this.setState({contractDetailsJson:"Pending"}) 
         this.setState({ctc:ctc})
 
-        console.log('Complete Transaction')
         let userBackend = userParts["VoteCordinator"]
 
         //pass contract and interact to current user's backend
@@ -136,8 +131,8 @@ class Base extends React.Component {
 
         //show the contract details
         ctc.getInfo().then((contractDetails) => {
-            console.log(JSON.stringify(contractDetails))
-            this.setState({contractDetailsJson:contractDetails._hex});
+            let contractString = JSON.stringify(contractDetails).substring(1, contractDetails.length - 1);
+            this.setState({contractDetailsJson:contractString});
         })
     }
 
@@ -145,13 +140,9 @@ class Base extends React.Component {
       // attach to the contract in the backend
       ctc = await this.state.userAccount.contract(backend,this.state.attachContractDetails);
       // call the voters API
-
-      console.log("Ready to Vote")
-
       try{
         // now increment the vote here
         const [ currentVote ] = await ctc.apis.Voter.vote(1);
-        console.log(`Your latest vote is ${currentVote}`)
       }catch (e) {
         console.log(`Failed to Vote`)
       } 
@@ -169,9 +160,7 @@ class Base extends React.Component {
     }
 
     submitVote = async () => {
-      console.log("Submitting Vote")
       // attach to the contract in the backend
-      console.log(this.state.railaVotes,this.state.rutoVotes)
       if(this.state.railaVotes == 0 && this.state.rutoVotes == 0){
         alert('You have not voted for any candidate.')
       }
@@ -181,9 +170,6 @@ class Base extends React.Component {
         let userVote = this.state.railaVotes == 1 ? 1:2
         ctc = await this.state.userAccount.contract(backend,this.state.attachContractDetails);
         // call the voters API
-
-        console.log("Ready to Vote")
-
         try{
           // now increment the vote here
           const [ currentVote ] = await ctc.apis.Voter.vote(userVote);
