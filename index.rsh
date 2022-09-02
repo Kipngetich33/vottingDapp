@@ -10,12 +10,19 @@ export const main = Reach.App(() => {
       position:Bytes(50),
       candidates: Tuple(Bytes(50),Bytes(50))
     })),
+    sendLogs: Fun([UInt],Null)
   });
 
   // define the voter API interface
   const Voter = API('Voter', {
     vote: Fun([UInt],Tuple(UInt)),
   });
+
+  // define helper functions here
+  const determineAdditionOfVotes = (vote,contestantIndex) => {
+    // contestant index 1 for Raila Odinga and 2 for William Ruto
+    return vote == contestantIndex ? 1:0
+  } 
 
   init();
 
@@ -27,14 +34,11 @@ export const main = Reach.App(() => {
   VoteCordinator.publish();
   commit();
 
-  // define helper functions here
-  const determineAdditionOfVotes = (vote,contestantIndex) => {
-    // contestant index 1 for Raila Odinga and 2 for William Ruto
-    return vote == contestantIndex ? 1:0
-  } 
-
 
   // publish something in order to enter into a concesus step
+  VoteCordinator.only(() => {
+  });
+
   VoteCordinator.publish();
 
   const lenInBlocks = 10

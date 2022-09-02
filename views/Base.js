@@ -6,7 +6,6 @@ import { loadStdlib } from '@reach-sh/stdlib';
 const stdlib = loadStdlib(process.env);
 
 let ctc = null;
-// const interact = { ...stdlib.hasConsoleLogger }
 const userParts = {
     'VoteCordinator':backend.VoteCordinator,
 }
@@ -79,6 +78,10 @@ class Base extends React.Component {
             getContestants : () => {
               return {}
             },
+
+            sendLogs: (step) => {
+              console.log("Current Step:",step)
+            }
           }
 
       }
@@ -98,9 +101,9 @@ class Base extends React.Component {
 
     // create a new account
     createNewAccount = async () => {
-        // let userAccount = await stdlib.getDefaultAccount();
-        // console.log("Added user Account",userAccount)
-        let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
+        let userAccount = await stdlib.getDefaultAccount();
+        console.log("Added user Account",userAccount)
+        // let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
         this.setState({userAccountaddr:userAccount.networkAccount.addr})    
         //now show the confirmation section
@@ -108,6 +111,7 @@ class Base extends React.Component {
         //get user account balance
         let initialAccBal = this.parseAtomicToStandard(await userAccount.balanceOf())
         this.setState({initialAccountBalance:initialAccBal})
+        console.log("Initial Acc bal",initialAccBal)
     }
 
     fundAccount = async () => {
@@ -117,6 +121,7 @@ class Base extends React.Component {
     }
 
     initiateNewContract = async () => {
+        console.log("Initiating Contract")
         //mark current user as contract initializer
         ctc = await this.state.userAccount.contract(backend)
         //now set state of contract as Pending
