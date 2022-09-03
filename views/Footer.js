@@ -1,15 +1,14 @@
 import React, { Component } from "react"
-import styles from "./Navbar.module.css"
+import styles from "./Footer.module.css"
 
 
-class Navbar extends React.Component {
+class Footer extends React.Component {
     //create state for Component
     constructor(){
       super();
 
       this.state = {
       }
-
     }
 
     // render the DOM here
@@ -17,7 +16,7 @@ class Navbar extends React.Component {
         return (
             <div className = {styles.centerAlign} >
                 <nav className = {styles.footerNav}>
-                   <h1>Decentralized Voting System</h1>
+                    <p>Kipngetich Ngeno @2022</p>
                 </nav>
             </div>
         )
@@ -25,4 +24,4 @@ class Navbar extends React.Component {
 }
 
 // now export the created Component
-export default Navbar
+export default Footer

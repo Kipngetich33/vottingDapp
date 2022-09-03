@@ -5,10 +5,15 @@ import * as backend from '../build/index.main.mjs';
 import { loadStdlib } from '@reach-sh/stdlib';
 import MyAlgoConnect from '@randlabs/myalgo-connect';
 
+// import components
+import Navbar from "./Navbar.js"
+import Footer from "./Footer.js"
+
+
 const stdlib = loadStdlib(process.env);
 
-stdlib.setWalletFallback(stdlib.walletFallback({
-  providerEnv: 'TestNet', MyAlgoConnect })); 
+// stdlib.setWalletFallback(stdlib.walletFallback({
+//   providerEnv: 'TestNet', MyAlgoConnect })); 
 
 let ctc = null;
 const userParts = {
@@ -105,8 +110,8 @@ class Base extends React.Component {
 
     // create a new account
     createNewAccount = async () => {
-        let userAccount = await stdlib.getDefaultAccount();
-        // let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
+        // let userAccount = await stdlib.getDefaultAccount();
+        let userAccount = await stdlib.newTestAccount(stdlib.parseCurrency(1000))
         this.setState({userAccount:userAccount})
         this.setState({userAccountaddr : userAccount.networkAccount.addr})    
         //now show the confirmation section
@@ -213,8 +218,7 @@ class Base extends React.Component {
     render() {
         return (
           <div >
-            <h1>Decentralized Voting System</h1>
-            <hr/>
+            <Navbar/>
             <div className={this.state.roleDiv} >
               <h3>Select a role</h3>
               <button  onClick={this.voteCordinatorRole} type="button" className="btn btn-primary">
@@ -225,85 +229,88 @@ class Base extends React.Component {
                   Voter
               </button><br/><br/>
             </div>
-            <div className={this.state.voteCordinatorDiv}>
-              <h3>Vote Cordinator Section</h3>
-              <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
-                Create New Account    
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <input
-                type='text'
-                value={this.state.userAccountaddr}
-              /><br/><br/>
-            
-              <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
-                  Fund Account
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <input
-                type='text'
-                value={this.state.initialAccountBalance}
-              />
-              <br/><br/>
+            <div className="mainDiv">
+              <div className={this.state.voteCordinatorDiv}>
+                <h3>Vote Cordinator Section</h3>
+                <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
+                  Connect Account    
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <input
+                  type='text'
+                  value={this.state.userAccountaddr}
+                /><br/><br/>
+              
+                <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
+                    Fund Account
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <input
+                  type='text'
+                  value={this.state.initialAccountBalance}
+                />
+                <br/><br/>
 
-              <button id="initiateNewContract" onClick={this.initiateNewContract} type="button" className="btn btn-primary">
-                  Initiate Contract
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <input
-                type='text'
-                value={this.state.contractDetailsJson}
-              /><br/><br/>
+                <button id="initiateNewContract" onClick={this.initiateNewContract} type="button" className="btn btn-primary">
+                    Deploy Contract
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <input
+                  type='text'
+                  value={this.state.contractDetailsJson}
+                /><br/><br/>
+              </div>
+              
+              <div className={this.state.voterDiv}>
+                <h3>Voter Section</h3>
+                <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
+                  Connect Account  
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <input
+                  type='text'
+                  value={this.state.userAccountaddr}
+                /><br/><br/>
+
+                <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
+                    Fund Account
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <input
+                  type='text'
+                  value={this.state.initialAccountBalance}
+                />
+                <br/><br/>
+
+                <h4>Select your preffered President </h4>
+                <label > Vote for Raila Odinga</label>
+                <input type="checkbox" name="raila" onClick={this.voteRaila}/><br/><br/>
+                <label > Vote for William Ruto</label>
+                <input type="checkbox" name="ruto" onClick={this.voteRuto}/><br/><br/>
+
+                <input
+                  type='text'
+                  placeholder='Enter contract'
+                  onChange={(e) => this.setState({attachContractDetails: e.currentTarget.value})}
+                /> &nbsp;&nbsp;&nbsp;
+                <button id="submitVote" onClick={this.submitVote} type="button" className="btn btn-primary">
+                    Submit Vote
+                </button><br></br>
+              </div>
+
+              
+              <div className={this.state.resultsDiv}>
+                <hr/>
+                <h3>Results Section </h3>
+                <label > Raila Odinga Total Votes</label>
+                <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
+                <label > William Ruto Total Votes</label>
+                <input type="text" value={this.state.rutoTotalVotes}/><br/><br/>
+                <label > Winner</label>
+                <input type="text" value={this.state.winner} /><br/><br/>
+              </div>
             </div>
-            
-            <div className={this.state.voterDiv}>
-              <h3>Voter Section</h3>
-              <button id="createAccount" onClick={this.createNewAccount} type="button" className="btn btn-primary">
-                Create New Account
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <input
-                type='text'
-                value={this.state.userAccountaddr}
-              /><br/><br/>
-
-              <button id="fundAccount" onClick={this.fundAccount} type="button" className="btn btn-primary">
-                  Fund Account
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <input
-                type='text'
-                value={this.state.initialAccountBalance}
-              />
-              <br/><br/>
-
-              <h4>Select your preffered President </h4>
-              <label > Vote for Raila Odinga</label>
-              <input type="checkbox" name="raila" onClick={this.voteRaila}/><br/><br/>
-              <label > Vote for William Ruto</label>
-              <input type="checkbox" name="ruto" onClick={this.voteRuto}/><br/><br/>
-
-              <input
-                type='text'
-                placeholder='Enter contract'
-                onChange={(e) => this.setState({attachContractDetails: e.currentTarget.value})}
-              /> &nbsp;&nbsp;&nbsp;
-              <button id="submitVote" onClick={this.submitVote} type="button" className="btn btn-primary">
-                  Submit Vote
-              </button><br></br>
-            </div>
-
-            
-            <div className={this.state.resultsDiv}>
-              <hr/>
-              <h3>Results Section </h3>
-              <label > Raila Odinga Total Votes</label>
-              <input type="text" value={this.state.railaTotalVotes}/><br/><br/>
-              <label > William Ruto Total Votes</label>
-              <input type="text" value={this.state.rutoTotalVotes}/><br/><br/>
-              <label > Winner</label>
-              <input type="text" value={this.state.winner} /><br/><br/>
-            </div>
+            <Footer/>
 
           </div>
         )
