@@ -2,3 +2,4 @@
 .vscode/
 build/
 reach
+node_modules/
